@@ -1,61 +1,115 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<h1 align="center">UMKM-Commerce</h1>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+UMKM-Commerce adalah aplikasi e-commerce sederhana berbasis Laravel untuk membantu pelaku UMKM menjual produk secara online. Proyek ini mencakup fitur inti: katalog produk, keranjang belanja, checkout, pesanan, ulasan, alamat pengiriman, metode pengiriman, serta autentikasi pengguna (Laravel Breeze).
 
-## About Laravel
+Database diagram: https://dbdiagram.io/d/68cfea2f960f6d821a15006b
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Fitur
+- Katalog & detail produk (+ slug SEO)
+- Kategori produk
+- Keranjang belanja (tambah, ubah, hapus)
+- Checkout dengan alamat pengiriman & metode pengiriman
+- Pesanan: daftar & detail
+- Alamat pengguna (default address)
+- Ulasan produk
+- Autentikasi (login/register) via Laravel Breeze (Blade)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Teknologi
+- Laravel 12 (PHP >= 8.2)
+- MySQL (Laragon) atau SQLite (opsional)
+- Laravel Breeze (Blade), Vite, Tailwind CSS
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Prasyarat
+- PHP 8.2+
+- Composer
+- Node.js 18+
+- Laragon (disarankan di Windows) atau lingkungan LAMP/WAMP lain
 
-## Learning Laravel
+## Instalasi (Windows + Laragon)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+1) Clone repo & masuk folder
+```powershell
+git clone https://github.com/MohammadIzza/UMKM-Commerce.git
+cd UMKM-Commerce
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+2) Pasang dependencies PHP
+```powershell
+composer install
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+3) Salin env & generate key
+```powershell
+Copy-Item .env.example .env
+php artisan key:generate
+```
 
-## Laravel Sponsors
+4) Konfigurasi database
+- Opsi A: MySQL (Laragon default)
+	- Buka file `.env`, set:
+		- `DB_CONNECTION=mysql`
+		- `DB_HOST=127.0.0.1`
+		- `DB_PORT=3306`
+		- `DB_DATABASE=umkm_commerce` (buat DB kosong via Laragon/PhpMyAdmin)
+		- `DB_USERNAME=root`
+		- `DB_PASSWORD=` (kosongkan jika default Laragon)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- Opsi B: SQLite (tanpa server DB)
+	- Buka file `.env`, set:
+		- `DB_CONNECTION=sqlite`
+		- Hapus/komentari baris `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+	- Pastikan file DB ada:
+```powershell
+New-Item -ItemType File database/database.sqlite -Force
+```
 
-### Premium Partners
+5) Migrasi & seeder
+```powershell
+php artisan migrate --seed
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+6) Pasang dependencies frontend & build assets
+```powershell
+npm install
+npm run build
+```
 
-## Contributing
+7) Menjalankan aplikasi
+- Opsi A (PHP built-in server):
+```powershell
+php artisan serve
+```
+	- Buka http://127.0.0.1:8000
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- Opsi B (Laragon Virtual Host):
+	- Letakkan project di `C:\laragon\www` dan aktifkan Auto virtual hosts di Laragon.
+	- Akses via http://umkm-commerce.test (atau sesuai nama folder).
 
-## Code of Conduct
+> Untuk pengembangan dengan hot reload, jalankan `npm run dev` pada terminal terpisah.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Akun Uji (Seeder)
+- Admin: `admin@umkm.test` / password: `password`
+- Pembeli: `buyer@umkm.test` / password: `password`
 
-## Security Vulnerabilities
+## Navigasi Utama
+- `/shop` — katalog produk
+- `/shop/{slug}` — detail produk (login untuk add-to-cart)
+- `/cart` — keranjang (login)
+- `/checkout` — checkout (login)
+- `/orders` — daftar pesanan (login)
+- `/orders/{id}` — detail pesanan (login)
+- `/addresses` — alamat pengguna (login)
+- `/login`, `/register` — autentikasi Breeze
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Catatan Teknis
+- Add-to-cart/Checkout mendukung respons HTML (redirect + flash message) dan API JSON otomatis berdasarkan tipe request.
+- Ongkir dihitung: `base_cost + (cost_per_kg * ceil(total_weight))`. Jika `cost_per_kg` null → dianggap 0.
+- Seeder mengisi contoh kategori, produk, metode pengiriman, user, alamat, ulasan, dan cart dasar.
 
-## License
+## Pengujian (opsional)
+```powershell
+php artisan test
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Lisensi
+MIT
