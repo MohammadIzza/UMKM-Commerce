@@ -42,6 +42,10 @@ class CartController extends Controller
 
     public function updateItem(Request $request, CartItem $item)
     {
+        // Ensure item belongs to current user's cart
+        if ($item->cart->user_id !== Auth::id()) {
+            abort(403);
+        }
         $data = $request->validate([
             'qty' => 'required|integer|min:1',
         ]);
@@ -51,6 +55,9 @@ class CartController extends Controller
 
     public function removeItem(CartItem $item)
     {
+        if ($item->cart->user_id !== Auth::id()) {
+            abort(403);
+        }
         $item->delete();
         return response()->json(['message' => 'Cart item removed']);
     }
