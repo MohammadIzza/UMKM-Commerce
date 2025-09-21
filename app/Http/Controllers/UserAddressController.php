@@ -73,4 +73,16 @@ class UserAddressController extends Controller
         $address->delete();
         return response()->json(['message' => 'Address deleted']);
     }
+
+    public function setDefault(UserAddress $address)
+    {
+        if ($address->user_id !== Auth::id()) abort(403);
+        UserAddress::where('user_id', Auth::id())->update(['is_default' => false]);
+        $address->is_default = true;
+        $address->save();
+        if (request()->wantsJson()) {
+            return response()->json(['message' => 'Default address updated', 'address' => $address]);
+        }
+        return redirect()->route('addresses.index')->with('success', 'Alamat default diperbarui');
+    }
 }

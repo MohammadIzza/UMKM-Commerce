@@ -37,7 +37,10 @@ class CartController extends Controller
         $item->price = $product->price;
         $item->save();
 
-        return response()->json(['message' => 'Added to cart', 'item' => $item->load('product')]);
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Added to cart', 'item' => $item->load('product')]);
+        }
+        return redirect()->back()->with('success', 'Produk ditambahkan ke keranjang');
     }
 
     public function updateItem(Request $request, CartItem $item)
@@ -50,15 +53,21 @@ class CartController extends Controller
             'qty' => 'required|integer|min:1',
         ]);
         $item->update(['qty' => $data['qty']]);
-        return response()->json(['message' => 'Cart item updated', 'item' => $item->load('product')]);
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Cart item updated', 'item' => $item->load('product')]);
+        }
+        return redirect()->route('cart.index')->with('success', 'Jumlah produk diperbarui');
     }
 
-    public function removeItem(CartItem $item)
+    public function removeItem(Request $request, CartItem $item)
     {
         if ($item->cart->user_id !== Auth::id()) {
             abort(403);
         }
         $item->delete();
-        return response()->json(['message' => 'Cart item removed']);
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Cart item removed']);
+        }
+        return redirect()->route('cart.index')->with('success', 'Produk dihapus dari keranjang');
     }
 }
