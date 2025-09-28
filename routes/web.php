@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserAddressController;
 use App\Http\Controllers\CartPageController;
 use App\Http\Controllers\CheckoutPageController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\OrdersPageController;
 use App\Http\Controllers\AddressesPageController;
 use App\Models\UserAddress;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     return view('welcome');
@@ -45,7 +47,21 @@ Route::middleware('auth')->group(function () {
     Route::post('/addresses/{address}/default', [UserAddressController::class, 'setDefault'])->name('addresses.default');
 });
 
+// Admin routes
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/products', [App\Http\Controllers\Admin\ProductController::class, 'index'])->name('products');
+    Route::get('/products/create', [App\Http\Controllers\Admin\ProductController::class, 'create'])->name('products.create');
+    Route::post('/products', [App\Http\Controllers\Admin\ProductController::class, 'store'])->name('products.store');
+    Route::get('/products/{product}/edit', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('products.edit');
+    Route::put('/products/{product}', [App\Http\Controllers\Admin\ProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [App\Http\Controllers\Admin\ProductController::class, 'destroy'])->name('products.destroy');
+    Route::delete('/products/images/{image}', [App\Http\Controllers\Admin\ProductController::class, 'deleteImage'])->name('products.images.destroy');
+});
+
 Route::get('/dashboard', function () {
+    if (Auth::check() && Auth::user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -53,6 +69,36 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::middleware(['web', 'auth', 'admin'])->prefix('admin')->group(function () {
+    // Admin Dashboard
+    Route::get('/dashboard', [App\Http\Controllers\Admin\AdminController::class, 'dashboard'])
+        ->name('admin.dashboard');
+
+    // Products Management
+    Route::get('/products', [App\Http\Controllers\Admin\ProductController::class, 'index'])
+        ->name('admin.products');
+    Route::get('/products/create', [App\Http\Controllers\Admin\ProductController::class, 'create'])
+        ->name('admin.products.create');
+    Route::post('/products', [App\Http\Controllers\Admin\ProductController::class, 'store'])
+        ->name('admin.products.store');
+    Route::get('/products/{product}/edit', [App\Http\Controllers\Admin\ProductController::class, 'edit'])
+        ->name('admin.products.edit');
+    Route::put('/products/{product}', [App\Http\Controllers\Admin\ProductController::class, 'update'])
+        ->name('admin.products.update');
+    Route::delete('/products/{product}', [App\Http\Controllers\Admin\ProductController::class, 'destroy'])
+        ->name('admin.products.destroy');
+    Route::delete('/products/images/{image}', [App\Http\Controllers\Admin\ProductController::class, 'deleteImage'])
+        ->name('admin.products.images.destroy');
+
+    // Orders Management
+    Route::get('/orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])
+        ->name('admin.orders');
+    Route::get('/orders/{order}', [App\Http\Controllers\Admin\OrderController::class, 'show'])
+        ->name('admin.orders.show');
+    Route::patch('/orders/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])
+        ->name('admin.orders.update-status');
 });
 
 require __DIR__.'/auth.php';
