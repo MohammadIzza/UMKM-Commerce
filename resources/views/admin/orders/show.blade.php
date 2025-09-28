@@ -11,17 +11,32 @@
                 <h3 class="text-lg leading-6 font-medium text-gray-900">
                     Order Information
                 </h3>
-                <div class="flex items-center">
-                    <form action="{{ route('admin.orders.update-status', $order) }}" method="POST" class="flex items-center">
+                <div class="flex items-center justify-between">
+                    <form action="{{ route('admin.orders.update-status', $order) }}" method="POST" class="flex items-center gap-4 w-full">
                         @csrf
                         @method('PATCH')
-                        <select name="status" id="status" class="mr-2 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                            <option value="processing" {{ $order->status == 'processing' ? 'selected' : '' }}>Processing</option>
-                            <option value="shipped" {{ $order->status == 'shipped' ? 'selected' : '' }}>Shipped</option>
-                            <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>Completed</option>
-                            <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                        </select>
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Update Status</button>
+                        <div class="flex items-center gap-3 w-full max-w-2xl">
+                            <div class="w-24">
+                                <span class="text-sm font-medium text-gray-900">Status</span>
+                            </div>
+                            <div class="flex-1">
+                                <select name="status" id="status" class="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md">
+                                    <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                                    <option value="processing" {{ $order->status == 'processing' ? 'selected' : '' }}>Processing</option>
+                                    <option value="shipped" {{ $order->status == 'shipped' ? 'selected' : '' }}>Shipped</option>
+                                    <option value="delivered" {{ $order->status == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                                    <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                    <option value="refunded" {{ $order->status == 'refunded' ? 'selected' : '' }}>Refunded</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="inline-flex justify-center items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 min-w-[140px]">
+                                <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Save Changes
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -51,7 +66,7 @@
                 </div>
                 <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Shipping Method</dt>
-                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ $order->shippingMethod->name }}</dd>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ $order->shipping_method }}</dd>
                 </div>
                 <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Shipping Address</dt>
@@ -100,7 +115,7 @@
                                     {{ $item->quantity }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}
+                                    Rp {{ number_format($item->subtotal, 0, ',', '.') }}
                                 </td>
                             </tr>
                         @endforeach
@@ -121,7 +136,7 @@
                         <tr class="bg-gray-100">
                             <td colspan="3" class="px-6 py-4 text-right text-sm font-bold text-gray-900">Total Amount</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                                Rp {{ number_format($order->total_amount, 0, ',', '.') }}
+                                Rp {{ number_format($order->total, 0, ',', '.') }}
                             </td>
                         </tr>
                     </tfoot>
