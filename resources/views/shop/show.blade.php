@@ -9,7 +9,7 @@
 
       <div>
         <h1 class="text-2xl font-semibold mb-2">{{ $product->name }}</h1>
-        <div class="text-xl text-blue-700 mb-4">Rp {{ number_format($product->price,0,',','.') }}</div>
+        <div class="text-xl text-green-600 mb-4">Rp {{ number_format($product->price,0,',','.') }}</div>
 
         <!-- Box: Atur Jumlah-->
         <div id="purchaseBox" class="border rounded-lg p-4 shadow-sm">
@@ -43,7 +43,7 @@
             </button>
           </form>
           @else
-            <a href="{{ route('login') }}" class="text-blue-600 underline">Login untuk membeli</a>
+            <a href="{{ route('login') }}" class="text-green-600 underline">Login untuk membeli</a>
           @endauth
         </div>
 
