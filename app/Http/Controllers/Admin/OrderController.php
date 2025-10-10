@@ -10,7 +10,7 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::with(['user', 'items.product'])
+        $orders = Order::with(['user', 'items.product', 'shippingMethod'])
             ->latest()
             ->paginate(10);
 
@@ -26,10 +26,19 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $validated = $request->validate([
-            'status' => 'required|in:processing,shipped,completed,cancelled'
+            'status' => 'required|in:pending,confirmed,processing,shipped,delivered,cancelled,refunded'
         ]);
 
-        $order->update($validated);
+        // Update status dan timestamp terkait
+        $now = now();
+        if ($validated['status'] == 'confirmed') {
+            $order->confirmed_at = $now;
+        } elseif ($validated['status'] == 'shipped') {
+            $order->shipped_at = $now;
+        }
+        
+        $order->status = $validated['status'];
+        $order->save();
 
         return redirect()
             ->route('admin.orders.show', $order)

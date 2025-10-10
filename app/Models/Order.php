@@ -44,4 +44,23 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function shippingMethod(): BelongsTo
+    {
+        return $this->belongsTo(ShippingMethod::class);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::saving(function ($order) {
+            // Calculate subtotal from items
+            $subtotal = $order->items->sum('subtotal');
+            $order->subtotal = $subtotal;
+            
+            // Calculate total
+            $order->total = $subtotal + $order->shipping_cost - $order->discount_amount + $order->tax_amount;
+        });
+    }
 }

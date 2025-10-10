@@ -29,4 +29,13 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::saving(function ($item) {
+            $item->subtotal = $item->price * $item->qty;
+        });
+    }
 }
