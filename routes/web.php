@@ -40,8 +40,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders', [OrdersPageController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrdersPageController::class, 'show'])->name('orders.show');
 
-    // Addresses page and basic CRUD
-    Route::get('/addresses', [AddressesPageController::class, 'index'])->name('addresses.index');
+    // Addresses page and basic CRUD - Redirect to profile
+    Route::get('/addresses', function() {
+        return redirect()->route('profile.edit')->with('info', 'Addresses are now managed in your profile page.');
+    })->name('addresses.index');
     Route::post('/addresses', [UserAddressController::class, 'store'])->name('addresses.store');
     Route::delete('/addresses/{address}', [UserAddressController::class, 'destroy'])->name('addresses.destroy');
     Route::post('/addresses/{address}/default', [UserAddressController::class, 'setDefault'])->name('addresses.default');
