@@ -38,7 +38,12 @@ class UserAddressController extends Controller
         }
 
         $address = UserAddress::create($data + ['user_id' => Auth::id()]);
-        return response()->json(['message' => 'Address saved', 'address' => $address]);
+        
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Address saved', 'address' => $address]);
+        }
+        
+        return redirect()->route('profile.edit')->with('success', 'Address added successfully!');
     }
 
     public function update(Request $request, UserAddress $address)
@@ -71,7 +76,12 @@ class UserAddressController extends Controller
     {
         if ($address->user_id !== Auth::id()) abort(403);
         $address->delete();
-        return response()->json(['message' => 'Address deleted']);
+        
+        if (request()->wantsJson()) {
+            return response()->json(['message' => 'Address deleted']);
+        }
+        
+        return redirect()->route('profile.edit')->with('success', 'Address deleted successfully!');
     }
 
     public function setDefault(UserAddress $address)
@@ -83,6 +93,6 @@ class UserAddressController extends Controller
         if (request()->wantsJson()) {
             return response()->json(['message' => 'Default address updated', 'address' => $address]);
         }
-        return redirect()->route('addresses.index')->with('success', 'Alamat default diperbarui');
+        return redirect()->route('profile.edit')->with('success', 'Default address updated successfully!');
     }
 }
