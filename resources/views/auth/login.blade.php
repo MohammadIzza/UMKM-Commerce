@@ -1,4 +1,13 @@
 <x-guest-layout>
+    <!-- Page Title -->
+    <div class="text-center mb-6">
+        <h1 class="text-2xl font-semibold text-gray-900">Login</h1>
+        <p class="mt-2 text-sm text-gray-600">
+            {{ __('Belum punya akun?') }}
+            <a href="{{ route('register') }}" class="text-green-600 hover:text-green-700 font-medium">{{ __('Daftar sekarang') }}</a>
+        </p>
+    </div>
+
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
@@ -34,7 +43,7 @@
 
         <div class="flex items-center justify-end mt-4">
             @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
+                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" href="{{ route('password.request') }}">
                     {{ __('Forgot your password?') }}
                 </a>
             @endif

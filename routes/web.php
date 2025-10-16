@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('shop.index');
 });
 
 // Shop pages (Blade)
@@ -64,7 +64,7 @@ Route::get('/dashboard', function () {
     if (Auth::check() && Auth::user()->role === 'admin') {
         return redirect()->route('admin.dashboard');
     }
-    return view('dashboard');
+    return redirect()->route('shop.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
