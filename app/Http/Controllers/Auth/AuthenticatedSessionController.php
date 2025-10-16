@@ -28,7 +28,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Force redirect to home after login to avoid being stuck on prior intended pages
+        if (Auth::user() && method_exists(Auth::user(), 'isAdmin') && Auth::user()->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('shop.index');
     }
 
     /**
