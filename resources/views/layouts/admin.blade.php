@@ -15,7 +15,7 @@
                     <div class="flex">
                         <!-- Logo -->
                         <div class="shrink-0 flex items-center">
-                            <a href="{{ route('admin.dashboard') }}" class="text-lg font-bold text-gray-900">
+                            <a href="{{ route('admin.dashboard') }}" class="text-lg font-bold text-green-500">
                                 <span style="color: #08CB00;">UMKM Commerce</span>
                             </a>
                         </div>
