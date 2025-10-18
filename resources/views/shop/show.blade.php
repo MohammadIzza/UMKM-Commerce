@@ -15,13 +15,25 @@
         <div id="purchaseBox" class="border rounded-lg p-4 shadow-sm">
           <div class="font-semibold mb-3">Atur Jumlah</div>
           <div class="flex items-center justify-between mb-3">
-            <div class="inline-flex items-center border rounded-md overflow-hidden">
-              <button type="button" id="decBtn" class="px-3 py-2 text-gray-600 hover:bg-gray-50 disabled:opacity-40" aria-label="Kurangi">−</button>
+            <div class="inline-flex items-center border rounded-md overflow-hidden {{ $product->stock <= 0 ? 'opacity-50' : '' }}">
+              <button type="button" id="decBtn" class="px-3 py-2 text-gray-600 hover:bg-gray-50 disabled:opacity-40" aria-label="Kurangi" {{ $product->stock <= 0 ? 'disabled' : '' }}>−</button>
               <input id="qtyInput" type="number" min="1" step="1" inputmode="numeric" value="1"
-                     class="w-24 sm:w-28 shrink-0 text-center border-x px-3 py-2 focus:outline-none">
-              <button type="button" id="incBtn" class="px-3 py-2 text-green-600 hover:bg-gray-50 disabled:opacity-40" aria-label="Tambah">+</button>
+                     class="w-24 sm:w-28 shrink-0 text-center border-x px-3 py-2 focus:outline-none"
+                     {{ $product->stock <= 0 ? 'disabled' : '' }}>
+              <button type="button" id="incBtn" class="px-3 py-2 text-green-600 hover:bg-gray-50 disabled:opacity-40" aria-label="Tambah" {{ $product->stock <= 0 ? 'disabled' : '' }}>+</button>
             </div>
-            <div class="text-sm">Stok Total: <span class="font-semibold">{{ $product->stock ?? 0 }}</span></div>
+            <div class="text-sm {{ $product->stock <= 5 ? 'text-red-600' : 'text-gray-600' }}">
+              Stok Total: <span class="font-semibold">{{ $product->stock ?? 0 }}</span>
+              @if($product->stock <= 5 && $product->stock > 0)
+                <span class="text-xs">(Stok terbatas!)</span>
+              @endif
+            </div>
+            
+            @if($cartItem)
+              <div class="text-sm text-blue-600 mt-1">
+                ✓ Sudah ada {{ $cartItem->qty }} di keranjang
+              </div>
+            @endif
           </div>
 
           <div class="text-sm text-gray-500">Subtotal</div>
@@ -34,14 +46,33 @@
           </div>
 
           @auth
-          <form method="POST" action="{{ url('/cart/add') }}">
-            @csrf
-            <input type="hidden" name="product_id" value="{{ $product->id }}">
-            <input type="hidden" id="qtyField" name="qty" value="1">
-            <button type="submit" class="w-full mt-3 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded">
-              + Keranjang
-            </button>
-          </form>
+            @if($product->stock <= 0)
+              <div class="w-full mt-3 bg-red-500 text-white font-semibold py-3 rounded text-center">
+                ❌ Stok Habis
+              </div>
+              <div class="mt-2 text-sm text-red-600 text-center">
+                Produk ini tidak tersedia saat ini
+              </div>
+            @elseif($cartItem && $cartItem->qty >= $product->stock)
+              <div class="w-full mt-3 bg-yellow-500 text-white font-semibold py-3 rounded text-center">
+                Maksimal Stok Tercapai
+              </div>
+              <a href="{{ route('cart.index') }}" class="block w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded text-center">
+                Lihat Keranjang
+              </a>
+            @else
+              <form method="POST" action="{{ url('/cart/add') }}">
+                @csrf
+                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                <input type="hidden" id="qtyField" name="qty" value="1">
+                <button type="submit" class="w-full mt-3 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded">
+                  + Keranjang
+                  @if($cartItem)
+                    ({{ $product->stock - $cartItem->qty }} tersisa)
+                  @endif
+                </button>
+              </form>
+            @endif
           @else
             <a href="{{ route('login') }}" class="text-green-600 underline">Login untuk membeli</a>
           @endauth

@@ -50,6 +50,45 @@ class Order extends Model
         return $this->belongsTo(ShippingMethod::class);
     }
 
+    /**
+     * Check if order can be modified (status can be changed)
+     */
+    public function canBeModified(): bool
+    {
+        return !in_array($this->status, ['confirmed', 'cancelled', 'refunded']);
+    }
+
+    /**
+     * Check if order is in final status (cannot be changed)
+     */
+    public function isFinalStatus(): bool
+    {
+        return in_array($this->status, ['confirmed', 'cancelled', 'refunded']);
+    }
+
+    /**
+     * Get available status transitions for current order status
+     */
+    public function getAvailableStatusTransitions(): array
+    {
+        if ($this->isFinalStatus()) {
+            return []; // No transitions allowed for final statuses
+        }
+
+        switch ($this->status) {
+            case 'pending':
+                return ['confirmed', 'cancelled'];
+            case 'processing':
+                return ['shipped', 'cancelled'];
+            case 'shipped':
+                return ['delivered', 'cancelled'];
+            case 'delivered':
+                return ['refunded']; // Can only refund delivered orders
+            default:
+                return [];
+        }
+    }
+
     protected static function boot()
     {
         parent::boot();

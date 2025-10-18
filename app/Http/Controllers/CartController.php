@@ -33,7 +33,25 @@ class CartController extends Controller
             'cart_id' => $cart->id,
             'product_id' => $product->id,
         ]);
-        $item->qty = ($item->exists ? $item->qty : 0) + $qty;
+        $newQty = ($item->exists ? $item->qty : 0) + $qty;
+        
+        // Check stock availability
+        if ($newQty > $product->stock) {
+            $message = $item->exists 
+                ? "Produk sudah ada di keranjang dengan jumlah {$item->qty}. Stok tersedia: {$product->stock}"
+                : "Stok tidak mencukupi. Stok tersedia: {$product->stock}";
+                
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'stock' => $product->stock,
+                    'current_qty' => $item->exists ? $item->qty : 0
+                ], 422);
+            }
+            return redirect()->back()->with('error', $message);
+        }
+        
+        $item->qty = $newQty;
         $item->price = $product->price;
         $item->save();
 
@@ -52,6 +70,18 @@ class CartController extends Controller
         $data = $request->validate([
             'qty' => 'required|integer|min:1',
         ]);
+        
+        // Check stock availability
+        if ($data['qty'] > $item->product->stock) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Stok tidak mencukupi. Stok tersedia: ' . $item->product->stock,
+                    'stock' => $item->product->stock
+                ], 422);
+            }
+            return redirect()->route('cart.index')->with('error', 'Stok tidak mencukupi. Stok tersedia: ' . $item->product->stock);
+        }
+        
         $item->update(['qty' => $data['qty']]);
         if ($request->wantsJson()) {
             return response()->json(['message' => 'Cart item updated', 'item' => $item->load('product')]);

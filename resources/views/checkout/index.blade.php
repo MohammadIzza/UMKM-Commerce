@@ -60,13 +60,120 @@
                 <div>Rp {{ number_format($item->price * $item->qty,0,',','.') }}</div>
               </div>
             @endforeach
-            <div class="p-3 font-medium flex justify-between">
+            
+            <div class="p-3 flex justify-between">
               <div>Subtotal</div>
-              <div>Rp {{ number_format($cart->items->sum(fn($i)=>$i->price*$i->qty),0,',','.') }}</div>
+              <div id="subtotal-amount">Rp {{ number_format($cart->subtotal, 0, ',', '.') }}</div>
+            </div>
+            
+            <div class="p-3 flex justify-between">
+              <div>
+                <div class="font-medium">Ongkos Kirim</div>
+                <div class="text-xs text-gray-500" id="shipping-info">
+                  @php
+                    $defaultShipping = $shippingMethods->first();
+                  @endphp
+                  {{ $defaultShipping ? $defaultShipping->name : 'Pilih metode pengiriman' }}
+                  @if($cart->total_weight > 0)
+                    <span class="text-blue-600">({{ number_format($cart->total_weight, 1) }}kg)</span>
+                  @endif
+                  @if($defaultShipping && $defaultShipping->estimated_days)
+                    <br><span class="text-green-600">Est: {{ $defaultShipping->estimated_days }}</span>
+                  @endif
+                </div>
+              </div>
+              <div class="text-right">
+                              <div id="shipping-cost">
+                @if($defaultShipping)
+                  Rp {{ number_format($defaultShipping->base_cost + ($defaultShipping->cost_per_kg * ceil($cart->total_weight)), 0, ',', '.') }}
+                @else
+                  Rp 0
+                @endif
+              </div>
+                @if($defaultShipping && $cart->total_weight > 0)
+                  <div class="text-xs text-gray-500 breakdown">
+                    Base: {{ number_format($defaultShipping->base_cost, 0, ',', '.') }} + 
+                    {{ number_format($defaultShipping->cost_per_kg * ceil($cart->total_weight), 0, ',', '.') }}
+                  </div>
+                @endif
+              </div>
+            </div>
+            
+            <div class="p-3 font-medium flex justify-between bg-gray-50">
+              <div>Total</div>
+              <div id="total-amount">
+                @php
+                  $shippingCost = $defaultShipping ? ($defaultShipping->base_cost + ($defaultShipping->cost_per_kg * ceil($cart->total_weight))) : 0;
+                @endphp
+                Rp {{ number_format($cart->subtotal + $shippingCost, 0, ',', '.') }}
+              </div>
             </div>
           </div>
         </div>
       </div>
     @endif
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const shippingSelect = document.querySelector('select[name="shipping_method_id"]');
+      const shippingCostElement = document.getElementById('shipping-cost');
+      const shippingInfoElement = document.getElementById('shipping-info');
+      const totalAmountElement = document.getElementById('total-amount');
+      const subtotalAmountElement = document.getElementById('subtotal-amount');
+      
+      // Shipping methods data
+      const shippingMethods = @json($shippingMethods->keyBy('id'));
+      const totalWeight = {{ $cart->total_weight }};
+      const subtotal = {{ $cart->subtotal }};
+      
+      function updateShippingCost() {
+        const selectedMethodId = shippingSelect.value;
+        const selectedMethod = shippingMethods[selectedMethodId];
+        
+        if (selectedMethod) {
+          const baseCost = parseFloat(selectedMethod.base_cost);
+          const costPerKg = parseFloat(selectedMethod.cost_per_kg || 0);
+          const ceilWeight = Math.ceil(totalWeight);
+          const shippingCost = baseCost + (costPerKg * ceilWeight);
+          const total = subtotal + shippingCost;
+          
+          // Format numbers to Indonesian format
+          const formatRupiah = (amount) => {
+            return 'Rp ' + new Intl.NumberFormat('id-ID').format(amount);
+          };
+          
+          // Update shipping cost display
+          shippingCostElement.textContent = formatRupiah(shippingCost);
+          
+          // Update breakdown if exists
+          const breakdownElement = shippingCostElement.parentElement.querySelector('.breakdown');
+          if (breakdownElement && totalWeight > 0) {
+            const weightCost = costPerKg * ceilWeight;
+            breakdownElement.textContent = `Base: ${formatRupiah(baseCost).replace('Rp ', '')} + ${formatRupiah(weightCost).replace('Rp ', '')}`;
+          }
+          
+          // Update shipping info
+          let infoHtml = selectedMethod.name;
+          if (totalWeight > 0) {
+            infoHtml += ` <span class="text-blue-600">(${totalWeight.toFixed(1)}kg)</span>`;
+          }
+          if (selectedMethod.estimated_days) {
+            infoHtml += `<br><span class="text-green-600">Est: ${selectedMethod.estimated_days}</span>`;
+          }
+          shippingInfoElement.innerHTML = infoHtml;
+          
+          // Update total
+          totalAmountElement.textContent = formatRupiah(total);
+        }
+      }
+      
+      // Update when shipping method changes
+      if (shippingSelect) {
+        shippingSelect.addEventListener('change', updateShippingCost);
+        // Initial update
+        updateShippingCost();
+      }
+    });
+  </script>
 </x-app-layout>

@@ -77,6 +77,11 @@ class OrderController extends Controller
         }
 
         return DB::transaction(function () use ($user, $cart, $method, $data, $isForm) {
+            // Ensure cart has items
+            if ($cart->items->isEmpty()) {
+                throw new \Exception('Cart is empty. Cannot create order.');
+            }
+            
             $subtotal = $cart->items->sum(fn ($i) => $i->qty * $i->price);
             $totalWeight = $cart->items->sum(fn ($i) => ($i->product->weight ?? 0) * $i->qty);
             $shippingCost = (float)$method->base_cost + (float)($method->cost_per_kg ?? 0) * ceil($totalWeight);
@@ -141,6 +146,11 @@ class OrderController extends Controller
             ]);
 
             foreach ($cart->items as $ci) {
+                // Check stock availability before creating order item
+                if ($ci->product->stock < $ci->qty) {
+                    throw new \Exception("Stok tidak mencukupi untuk produk: {$ci->product->name}. Stok tersedia: {$ci->product->stock}");
+                }
+                
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $ci->product_id,
@@ -151,6 +161,12 @@ class OrderController extends Controller
                     'qty' => $ci->qty,
                     'subtotal' => $ci->qty * $ci->price,
                 ]);
+                
+                // Reduce product stock
+                $ci->product->decrement('stock', $ci->qty);
+                
+                // Update sold count for analytics
+                $ci->product->increment('sold_count', $ci->qty);
             }
 
             // Clear cart

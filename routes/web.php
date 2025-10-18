@@ -15,15 +15,20 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
+    if (Auth::check() && Auth::user()->isAdmin()) {
+        return redirect()->route('admin.dashboard');
+    }
     return redirect()->route('shop.index');
 });
 
-// Shop pages (Blade)
-Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
-Route::get('/shop/{product}', [ShopController::class, 'show'])->name('shop.show');
+// Shop pages (Blade) - Prevent admin access
+Route::middleware(\App\Http\Middleware\PreventAdminShopAccess::class)->group(function () {
+    Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
+    Route::get('/shop/{product}', [ShopController::class, 'show'])->name('shop.show');
+});
 
-// Authenticated routes
-Route::middleware('auth')->group(function () {
+// Authenticated routes (Customer only - prevent admin access)
+Route::middleware(['auth', \App\Http\Middleware\PreventAdminShopAccess::class])->group(function () {
     // Add to cart from product page
     Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 

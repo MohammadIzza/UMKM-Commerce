@@ -12,32 +12,61 @@
                     Order Information
                 </h3>
                 <div class="flex items-center justify-between">
-                    <form action="{{ route('admin.orders.update-status', $order) }}" method="POST" class="flex items-center gap-4 w-full">
-                        @csrf
-                        @method('PATCH')
-                        <div class="flex items-center gap-3 w-full max-w-2xl">
-                            <div class="w-24">
-                                <span class="text-sm font-medium text-gray-900">Status</span>
+                    @if($order->canBeModified())
+                        <form action="{{ route('admin.orders.update-status', $order) }}" method="POST" class="flex items-center gap-4 w-full">
+                            @csrf
+                            @method('PATCH')
+                            <div class="flex items-center gap-3 w-full max-w-2xl">
+                                <div class="w-24">
+                                    <span class="text-sm font-medium text-gray-900">Status</span>
+                                </div>
+                                <div class="flex-1">
+                                    <select name="status" id="status" class="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md">
+                                        @php
+                                            $availableTransitions = $order->getAvailableStatusTransitions();
+                                            $allStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+                                        @endphp
+                                        
+                                        {{-- Current status is always selectable --}}
+                                        <option value="{{ $order->status }}" selected>{{ ucfirst($order->status) }} (Current)</option>
+                                        
+                                        {{-- Available transitions --}}
+                                        @foreach($availableTransitions as $status)
+                                            <option value="{{ $status }}">{{ ucfirst($status) }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <button type="submit" class="inline-flex justify-center items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 min-w-[140px]">
+                                    <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    Save Changes
+                                </button>
                             </div>
-                            <div class="flex-1">
-                                <select name="status" id="status" class="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md">
-                                    <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                                    <option value="processing" {{ $order->status == 'processing' ? 'selected' : '' }}>Processing</option>
-                                    <option value="shipped" {{ $order->status == 'shipped' ? 'selected' : '' }}>Shipped</option>
-                                    <option value="delivered" {{ $order->status == 'delivered' ? 'selected' : '' }}>Delivered</option>
-                                    <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                                    <option value="refunded" {{ $order->status == 'refunded' ? 'selected' : '' }}>Refunded</option>
-                                </select>
+                        </form>
+                    @else
+                        <div class="flex items-center gap-4 w-full">
+                            <div class="flex items-center gap-3 w-full max-w-2xl">
+                                <div class="w-24">
+                                    <span class="text-sm font-medium text-gray-900">Status</span>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="block w-full pl-3 pr-10 py-2 text-sm bg-gray-100 border border-gray-300 rounded-md">
+                                        <span class="font-medium text-gray-700">{{ ucfirst($order->status) }}</span>
+                                        <span class="text-xs text-gray-500 ml-2">(Final - Cannot be changed)</span>
+                                    </div>
+                                </div>
+                                <div class="min-w-[140px] flex items-center">
+                                    <div class="inline-flex items-center px-3 py-2 text-sm text-gray-500 bg-gray-100 rounded-md">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                        </svg>
+                                        Locked
+                                    </div>
+                                </div>
                             </div>
-                            <button type="submit" class="inline-flex justify-center items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 min-w-[140px]">
-                                <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                Save Changes
-                            </button>
                         </div>
-                    </form>
+                    @endif
                 </div>
             </div>
         </div>

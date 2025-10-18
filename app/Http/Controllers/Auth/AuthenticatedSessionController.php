@@ -28,11 +28,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // Force redirect to home after login to avoid being stuck on prior intended pages
-        if (Auth::user() && method_exists(Auth::user(), 'isAdmin') && Auth::user()->isAdmin()) {
+        // Role-based redirect after login
+        if (Auth::user()->isAdmin()) {
             return redirect()->route('admin.dashboard');
         }
 
+        // Default redirect for customers/regular users
         return redirect()->route('shop.index');
     }
 

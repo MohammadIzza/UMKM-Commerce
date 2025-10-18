@@ -18,6 +18,17 @@
               <div class="flex-1">
                 <h3 class="font-semibold text-lg text-gray-900">{{ $item->product->name }}</h3>
                 <p class="text-gray-600 mt-1">Rp {{ number_format($item->product->price, 0, ',', '.') }}</p>
+                <p class="text-sm mt-1 {{ $item->product->stock <= 5 ? 'text-red-600 font-medium' : 'text-gray-500' }}">
+                  Stok tersedia: {{ $item->product->stock }}
+                  @if($item->product->stock <= 5)
+                    <span class="text-xs">(Stok terbatas!)</span>
+                  @endif
+                </p>
+                @if($item->qty >= $item->product->stock)
+                  <p class="text-xs text-orange-600 mt-1 font-medium">
+                    ⚠️ Anda telah mencapai batas maksimum stok produk ini
+                  </p>
+                @endif
               </div>
 
               <!-- Quantity Controls -->
@@ -36,9 +47,11 @@
 
                 <!-- Plus Button -->
                 <button type="button" 
-                        class="plus-btn w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                        class="plus-btn w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         onclick="console.log('Plus clicked for item {{ $item->id }}'); updateQuantity('{{ $item->id }}', 'increase')"
-                        data-item-id="{{ $item->id }}">
+                        data-item-id="{{ $item->id }}"
+                        data-stock="{{ $item->product->stock }}"
+                        {{ $item->qty >= $item->product->stock ? 'disabled' : '' }}>
                   <span class="text-gray-600 font-medium">+</span>
                 </button>
 
@@ -104,13 +117,18 @@
     const plusBtn = document.querySelector(`.plus-btn[data-item-id="${itemId}"]`);
     const itemSubtotal = document.querySelector(`.item-subtotal[data-item-id="${itemId}"]`);
     const price = parseFloat(itemSubtotal.dataset.price);
+    const stock = parseInt(plusBtn.dataset.stock);
     
     let currentQty = parseInt(qtyDisplay.textContent);
     let newQty = currentQty;
     
-    console.log('Current qty:', currentQty, 'Price:', price);
+    console.log('Current qty:', currentQty, 'Price:', price, 'Stock:', stock);
     
     if (action === 'increase') {
+      if (currentQty >= stock) {
+        showToast('Stok tidak mencukupi. Stok tersedia: ' + stock, 'error');
+        return;
+      }
       newQty = currentQty + 1;
     } else if (action === 'decrease' && currentQty > 1) {
       newQty = currentQty - 1;
@@ -159,17 +177,21 @@
         console.log('Response status:', response.status);
         console.log('Response headers:', response.headers);
         
-        if (!response.ok) {
-          return response.text().then(text => {
-            console.log('Error response text:', text);
-            throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
-          });
-        }
-        
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
-          return response.json();
+          return response.json().then(data => {
+            if (!response.ok) {
+              throw new Error(data.message || `HTTP error! status: ${response.status}`);
+            }
+            return data;
+          });
         } else {
+          if (!response.ok) {
+            return response.text().then(text => {
+              console.log('Error response text:', text);
+              throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+            });
+          }
           return response.text().then(text => {
             console.log('Non-JSON response:', text);
             return { message: 'Updated successfully', text: text };
@@ -193,9 +215,11 @@
       .finally(() => {
         // Remove loading state
         qtyDisplay.style.opacity = '1';
-        plusBtn.disabled = false;
-        // Enable/disable minus button based on quantity
-        minusBtn.disabled = newQty <= 1;
+        // Update final qty from display (might have been reverted on error)
+        const finalQty = parseInt(qtyDisplay.textContent);
+        // Enable/disable buttons based on quantity and stock
+        minusBtn.disabled = finalQty <= 1;
+        plusBtn.disabled = finalQty >= stock;
       });
     }
   };
@@ -239,6 +263,23 @@
       setTimeout(() => toast.remove(), 300);
     }, 3000);
   };
+  
+  // Initialize button states when page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.plus-btn').forEach(function(btn) {
+      const itemId = btn.dataset.itemId;
+      const stock = parseInt(btn.dataset.stock);
+      const qtyDisplay = document.querySelector(`.qty-display[data-item-id="${itemId}"]`);
+      const minusBtn = document.querySelector(`.minus-btn[data-item-id="${itemId}"]`);
+      
+      if (qtyDisplay) {
+        const currentQty = parseInt(qtyDisplay.textContent);
+        // Update button states
+        minusBtn.disabled = currentQty <= 1;
+        btn.disabled = currentQty >= stock;
+      }
+    });
+  });
   </script>
 
   @push('scripts')

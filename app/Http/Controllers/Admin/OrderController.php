@@ -25,9 +25,24 @@ class OrderController extends Controller
 
     public function updateStatus(Request $request, Order $order)
     {
+        // Check if order can be modified
+        if (!$order->canBeModified()) {
+            return redirect()
+                ->route('admin.orders.show', $order)
+                ->with('error', 'Cannot modify order with status: ' . ucfirst($order->status) . '. Order is already finalized.');
+        }
+
         $validated = $request->validate([
             'status' => 'required|in:pending,confirmed,processing,shipped,delivered,cancelled,refunded'
         ]);
+
+        // Check if the status transition is allowed
+        $availableTransitions = $order->getAvailableStatusTransitions();
+        if (!empty($availableTransitions) && !in_array($validated['status'], $availableTransitions)) {
+            return redirect()
+                ->route('admin.orders.show', $order)
+                ->with('error', 'Invalid status transition. Available transitions from ' . ucfirst($order->status) . ': ' . implode(', ', array_map('ucfirst', $availableTransitions)));
+        }
 
         // Update status dan timestamp terkait
         $now = now();
@@ -35,6 +50,10 @@ class OrderController extends Controller
             $order->confirmed_at = $now;
         } elseif ($validated['status'] == 'shipped') {
             $order->shipped_at = $now;
+        } elseif ($validated['status'] == 'delivered') {
+            $order->delivered_at = $now;
+        } elseif ($validated['status'] == 'cancelled') {
+            $order->cancelled_at = $now;
         }
         
         $order->status = $validated['status'];
@@ -42,6 +61,6 @@ class OrderController extends Controller
 
         return redirect()
             ->route('admin.orders.show', $order)
-            ->with('success', 'Order status updated successfully');
+            ->with('success', 'Order status updated successfully to ' . ucfirst($validated['status']));
     }
 }

@@ -16,7 +16,7 @@
       <div class="border rounded p-4">
         <h2 class="font-medium mb-2">Ringkasan</h2>
         <div class="text-sm space-y-1">
-          <div class="flex justify-between"><span>Subtotal</span><span>Rp {{ number_format($order->subtotal,0,',','.') }}</span></div>
+          <div class="flex justify-between"><span>Subtotal</span><span>Rp {{ number_format($order->items->sum(fn($i)=>$i->price*$i->qty),0,',','.') }}</span></div>
           <div class="flex justify-between"><span>Ongkir</span><span>Rp {{ number_format($order->shipping_cost,0,',','.') }}</span></div>
           <div class="flex justify-between font-medium"><span>Total</span><span>Rp {{ number_format($order->total,0,',','.') }}</span></div>
         </div>

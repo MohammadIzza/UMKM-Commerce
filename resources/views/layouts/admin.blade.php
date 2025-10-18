@@ -153,6 +153,12 @@
                 </div>
             @endif
 
+            @if(session('warning'))
+                <div class="mb-4 px-4 py-2 bg-yellow-100 border border-yellow-200 text-yellow-800 rounded">
+                    {{ session('warning') }}
+                </div>
+            @endif
+
             <!-- Main Content -->
             @yield('content')
         </main>

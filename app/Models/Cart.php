@@ -32,4 +32,11 @@ class Cart extends Model
             return $item->product->price * $item->qty;
         });
     }
+
+    public function getTotalWeightAttribute()
+    {
+        return $this->items->sum(function ($item) {
+            return ($item->product->weight ?? 0) * $item->qty;
+        });
+    }
 }

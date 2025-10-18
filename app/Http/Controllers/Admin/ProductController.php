@@ -32,10 +32,15 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => 'required|max:255',
             'description' => 'required',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+            'price' => 'required|integer|min:1',
+            'stock' => 'required|integer|min:1',
             'category_id' => 'required|exists:categories,id',
             'images.*' => 'image|mimes:jpeg,png,jpg|max:2048'
+        ], [
+            'price.integer' => 'Harga harus berupa angka bulat Rupiah',
+            'price.min' => 'Harga minimal Rp 1',
+            'stock.integer' => 'Stok harus berupa angka bulat',
+            'stock.min' => 'Stok minimal 1 unit'
         ]);
 
         // Generate slug from name
@@ -75,10 +80,15 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => 'required|max:255',
             'description' => 'required',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+            'price' => 'required|integer|min:1',
+            'stock' => 'required|integer|min:1',
             'category_id' => 'required|exists:categories,id',
             'images.*' => 'image|mimes:jpeg,png,jpg|max:2048'
+        ], [
+            'price.integer' => 'Harga harus berupa angka bulat Rupiah',
+            'price.min' => 'Harga minimal Rp 1',
+            'stock.integer' => 'Stok harus berupa angka bulat',
+            'stock.min' => 'Stok minimal 1 unit'
         ]);
 
         $product->update($validated);

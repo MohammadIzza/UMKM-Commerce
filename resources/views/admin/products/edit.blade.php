@@ -45,14 +45,16 @@
             </div>
 
             <div class="mb-4">
-                <label for="price" class="block text-sm font-medium text-gray-700">Price</label>
+                <label for="price" class="block text-sm font-medium text-gray-700">Price (Rupiah)</label>
                 <div class="mt-1 relative rounded-md shadow-sm">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span class="text-gray-500 sm:text-sm"></span>
+                        <span class="text-gray-500 sm:text-sm">Rp</span>
                     </div>
-                    <input type="number" name="price" id="price" value="{{ old('price', $product->price) }}" required
-                        class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-12 sm:text-sm border-gray-300 rounded-md">
+                    <input type="number" name="price" id="price" value="{{ old('price', $product->price) }}" required min="1" step="1"
+                        class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-12 sm:text-sm border-gray-300 rounded-md"
+                        placeholder="Masukkan harga dalam Rupiah (angka bulat)">
                 </div>
+                <p class="mt-1 text-xs text-gray-500">Harga harus berupa angka bulat Rupiah (tanpa desimal)</p>
                 @error('price')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                 @enderror
@@ -60,8 +62,10 @@
 
             <div class="mb-4">
                 <label for="stock" class="block text-sm font-medium text-gray-700">Stock</label>
-                <input type="number" name="stock" id="stock" value="{{ old('stock', $product->stock) }}" required
-                    class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                <input type="number" name="stock" id="stock" value="{{ old('stock', $product->stock) }}" required min="1" step="1"
+                    class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    placeholder="Masukkan jumlah stok">
+                <p class="mt-1 text-xs text-gray-500">Stok minimal 1 unit</p>
                 @error('stock')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                 @enderror
@@ -132,6 +136,30 @@
                 });
             }
         }
+        
+        // Prevent decimal input for price and stock fields
+        document.addEventListener('DOMContentLoaded', function() {
+            const priceInput = document.getElementById('price');
+            const stockInput = document.getElementById('stock');
+            
+            [priceInput, stockInput].forEach(input => {
+                input.addEventListener('input', function(e) {
+                    // Remove any decimal values
+                    this.value = this.value.replace(/\./g, '');
+                    // Ensure minimum value is 1
+                    if (this.value === '0' || this.value === '') {
+                        this.value = '';
+                    }
+                });
+                
+                input.addEventListener('blur', function(e) {
+                    // Set minimum value to 1 when field loses focus
+                    if (this.value === '' || parseInt(this.value) < 1) {
+                        this.value = '1';
+                    }
+                });
+            });
+        });
     </script>
     @endpush
 @endsection

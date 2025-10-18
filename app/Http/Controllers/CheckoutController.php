@@ -48,6 +48,9 @@ class CheckoutController extends Controller
         // Get shipping method
         $shipping_method = ShippingMethod::findOrFail($request->shipping_method_id);
 
+        // Calculate shipping cost based on weight
+        $shippingCost = $shipping_method->base_cost + ($shipping_method->cost_per_kg * $cart->total_weight);
+
         // Create order
         $order = Order::create([
             'user_id' => Auth::id(),
@@ -60,9 +63,10 @@ class CheckoutController extends Controller
             'shipping_province' => $validated['shipping_province'],
             'shipping_postal_code' => $validated['shipping_postal_code'],
             'shipping_method_id' => $shipping_method->id,
-            'shipping_cost' => $shipping_method->base_cost,
+            'shipping_method' => $shipping_method->name,
+            'shipping_cost' => $shippingCost,
             'subtotal' => $cart->subtotal,
-            'total' => $cart->subtotal + $shipping_method->base_cost,
+            'total' => $cart->subtotal + $shippingCost,
             'status' => 'pending',
             'payment_method' => $validated['payment_method'],
             'payment_status' => 'pending',

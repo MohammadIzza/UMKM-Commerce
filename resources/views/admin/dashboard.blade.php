@@ -85,7 +85,7 @@
                                     #{{ $order->id }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $order->user->name }}
+                                    {{ $order->user->name ?? $order->customer_name }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
@@ -98,7 +98,7 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    Rp {{ number_format($order->total_amount, 0, ',', '.') }}
+                                    Rp {{ number_format($order->total, 0, ',', '.') }}
                                 </td>
                             </tr>
                         @endforeach

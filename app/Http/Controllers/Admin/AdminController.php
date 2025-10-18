@@ -16,7 +16,7 @@ class AdminController extends Controller
         // Get statistics for the dashboard
         $stats = [
             'total_orders' => Order::count(),
-            'pending_orders' => Order::where('status', 'processing')->count(),
+            'pending_orders' => Order::where('status', 'pending')->count(),
             'total_products' => Product::count(),
             'total_customers' => User::where('role', 'customer')->count(),
         ];
