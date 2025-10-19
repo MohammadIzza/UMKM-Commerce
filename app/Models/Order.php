@@ -55,7 +55,7 @@ class Order extends Model
      */
     public function canBeModified(): bool
     {
-        return !in_array($this->status, ['confirmed', 'cancelled', 'refunded']);
+        return !in_array($this->status, ['delivered', 'cancelled', 'refunded']);
     }
 
     /**
@@ -63,7 +63,7 @@ class Order extends Model
      */
     public function isFinalStatus(): bool
     {
-        return in_array($this->status, ['confirmed', 'cancelled', 'refunded']);
+        return in_array($this->status, ['delivered', 'cancelled', 'refunded']);
     }
 
     /**
@@ -78,6 +78,8 @@ class Order extends Model
         switch ($this->status) {
             case 'pending':
                 return ['confirmed', 'cancelled'];
+            case 'confirmed':
+                return ['processing', 'cancelled'];
             case 'processing':
                 return ['shipped', 'cancelled'];
             case 'shipped':

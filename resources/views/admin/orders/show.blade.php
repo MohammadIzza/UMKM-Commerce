@@ -84,10 +84,13 @@
                     <dt class="text-sm font-medium text-gray-500">Order Status</dt>
                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            @if($order->status == 'completed') bg-green-100 text-green-800
-                            @elseif($order->status == 'processing') bg-yellow-100 text-yellow-800
-                            @elseif($order->status == 'shipped') bg-blue-100 text-blue-800
+                            @if($order->status == 'pending') bg-yellow-100 text-yellow-800
+                            @elseif($order->status == 'confirmed') bg-blue-100 text-blue-800
+                            @elseif($order->status == 'processing') bg-indigo-100 text-indigo-800
+                            @elseif($order->status == 'shipped') bg-purple-100 text-purple-800
+                            @elseif($order->status == 'delivered') bg-green-100 text-green-800
                             @elseif($order->status == 'cancelled') bg-red-100 text-red-800
+                            @elseif($order->status == 'refunded') bg-gray-100 text-gray-800
                             @endif">
                             {{ ucfirst($order->status) }}
                         </span>
