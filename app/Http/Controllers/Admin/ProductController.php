@@ -58,9 +58,27 @@ class ProductController extends Controller
         $product = Product::create($validated);
 
         if ($request->hasFile('images')) {
+            $sortOrder = 0;
+            $firstImagePath = null;
             foreach ($request->file('images') as $image) {
                 $path = $image->store('products', 'public');
-                $product->images()->create(['path' => $path]);
+                
+                // Save first image path for product.image field
+                if ($sortOrder === 0) {
+                    $firstImagePath = $path;
+                }
+                
+                $product->images()->create([
+                    'image_path' => $path,
+                    'alt_text' => $product->name,
+                    'is_primary' => $sortOrder === 0,
+                    'sort_order' => $sortOrder++
+                ]);
+            }
+            
+            // Update product with first image
+            if ($firstImagePath) {
+                $product->update(['image' => $firstImagePath]);
             }
         }
 
@@ -94,9 +112,32 @@ class ProductController extends Controller
         $product->update($validated);
 
         if ($request->hasFile('images')) {
+            $sortOrder = $product->images()->max('sort_order') ?? -1;
+            $isFirstImage = $product->images()->count() === 0;
+            $firstNewImagePath = null;
+            
             foreach ($request->file('images') as $image) {
                 $path = $image->store('products', 'public');
-                $product->images()->create(['path' => $path]);
+                $sortOrder++;
+                
+                // Save first new image if product has no images
+                if ($isFirstImage && !$firstNewImagePath) {
+                    $firstNewImagePath = $path;
+                }
+                
+                $product->images()->create([
+                    'image_path' => $path,
+                    'alt_text' => $product->name,
+                    'is_primary' => $isFirstImage,
+                    'sort_order' => $sortOrder
+                ]);
+                
+                $isFirstImage = false;
+            }
+            
+            // Update product.image if this is the first image uploaded
+            if ($firstNewImagePath && !$product->image) {
+                $product->update(['image' => $firstNewImagePath]);
             }
         }
 
@@ -109,7 +150,7 @@ class ProductController extends Controller
     {
         // Delete associated images from storage
         foreach ($product->images as $image) {
-            Storage::disk('public')->delete($image->path);
+            Storage::disk('public')->delete($image->image_path);
         }
 
         $product->delete();
@@ -121,7 +162,7 @@ class ProductController extends Controller
 
     public function deleteImage(ProductImage $image)
     {
-        Storage::disk('public')->delete($image->path);
+        Storage::disk('public')->delete($image->image_path);
         $image->delete();
 
         return response()->json(['success' => true]);

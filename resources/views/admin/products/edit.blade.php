@@ -77,7 +77,7 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     @foreach($product->images as $image)
                     <div class="relative">
-                        <img src="{{ Storage::url($image->path) }}" alt="Product image" class="h-24 w-24 object-cover rounded">
+                        <img src="{{ Storage::url($image->image_path) }}" alt="Product image" class="h-24 w-24 object-cover rounded">
                         <button type="button" class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
                             onclick="deleteImage({{ $image->id }})">
                             ×

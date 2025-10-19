@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Facades\Storage')
 <x-app-layout>
   
   <div class="max-w-7xl mx-auto p-4">
@@ -52,11 +53,29 @@
       </div>
     </form>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       @forelse($products as $p)
         <a href="{{ url('/shop/'.$p->slug) }}" class="border rounded p-3 block border-gray-300 hover:border-gray-700 hover:shadow-lg transition-colors">
-          <div class="aspect-square bg-gray-100 mb-2 flex items-center justify-center">
-            <span class="text-gray-400">Gambar</span>
+          <div class="aspect-square bg-gray-100 mb-2 flex items-center justify-center overflow-hidden rounded">
+            @php
+              $imgPath = null;
+              if ($p->image) {
+                $imgPath = $p->image;
+              } elseif ($p->images->isNotEmpty()) {
+                $imgPath = $p->images->first()->image_path;
+              } elseif (is_array($p->gallery) && count($p->gallery) > 0) {
+                $imgPath = $p->gallery[0];
+              }
+            @endphp
+            @if($imgPath)
+              @if(str_starts_with($imgPath, 'seed/'))
+                <img src="{{ asset($imgPath) }}" alt="{{ $p->name }}" class="w-full h-full object-cover" loading="lazy">
+              @else
+                <img src="{{ Storage::url($imgPath) }}" alt="{{ $p->name }}" class="w-full h-full object-cover" loading="lazy">
+              @endif
+            @else
+              <span class="text-gray-400">Gambar</span>
+            @endif
           </div>
           <div class="font-medium">{{ $p->name }}</div>
           <div class="text-sm text-gray-600">Rp {{ number_format($p->price,0,',','.') }}</div>

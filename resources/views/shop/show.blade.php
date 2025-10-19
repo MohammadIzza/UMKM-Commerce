@@ -1,10 +1,51 @@
+@use('Illuminate\Support\Facades\Storage')
 <x-app-layout>
   <div class="max-w-5xl mx-auto p-4">
     <div class="grid md:grid-cols-2 gap-6">
       <div>
-        <div class="aspect-square bg-gray-100 flex items-center justify-center mb-2">
-          <span class="text-gray-400">Gambar</span>
+        @php
+          $mainPath = null;
+          if ($product->image) {
+            $mainPath = $product->image;
+          } elseif ($product->images->isNotEmpty()) {
+            $mainPath = $product->images->sortBy('sort_order')->first()->image_path;
+          } elseif (is_array($product->gallery ?? null) && count($product->gallery) > 0) {
+            $mainPath = $product->gallery[0];
+          }
+        @endphp
+        <div class="aspect-square bg-gray-100 flex items-center justify-center mb-2 overflow-hidden rounded">
+          @if($mainPath)
+            @if(str_starts_with($mainPath, 'seed/'))
+              <img src="{{ asset($mainPath) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+            @else
+              <img src="{{ Storage::url($mainPath) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+            @endif
+          @else
+            <span class="text-gray-400">Gambar</span>
+          @endif
         </div>
+
+        @php
+          $thumbs = [];
+          if ($product->images->isNotEmpty()) {
+            $thumbs = $product->images->sortBy('sort_order')->pluck('image_path')->all();
+          } elseif (is_array($product->gallery ?? null) && count($product->gallery) > 0) {
+            $thumbs = $product->gallery;
+          }
+        @endphp
+        @if(count($thumbs) > 1)
+          <div class="grid grid-cols-5 gap-2">
+            @foreach($thumbs as $t)
+              <div class="aspect-square bg-gray-100 overflow-hidden rounded cursor-pointer hover:opacity-75">
+                @if(str_starts_with($t, 'seed/'))
+                  <img src="{{ asset($t) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                @else
+                  <img src="{{ Storage::url($t) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                @endif
+              </div>
+            @endforeach
+          </div>
+        @endif
       </div>
 
       <div>

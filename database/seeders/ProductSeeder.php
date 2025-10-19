@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -24,12 +25,42 @@ class ProductSeeder extends Seeder
             ['name' => 'Kabel Data Micro USB 1m', 'price' => 15000, 'weight' => 0.05, 'category' => 'Elektronik'],
         ];
 
+        // Explicit mapping between product name and image file in public/seed
+        $imageMap = [
+            'Keripik Pisang Manis 200g' => 'KeripikPisangManis.jpg',
+            'Sambal Roa 150g' => 'SambalRoa.jpg',
+            'Batik Tulis Pria Lengan Panjang' => 'BatikTulisPriaLenganPanjang.webp',
+            'Gelang Manik Manik Handmade' => 'GelangManikManikHandmade.jpeg',
+            'Minyak Telon 60ml' => 'MinyakTelon.jpg',
+            'Sabun Herbal Rempah' => 'SabunHerbalRempah.jpeg',
+            'Sapu Ijuk Tradisional' => 'SapuIjukTradisional.webp',
+            'Keranjang Rotan Anyam' => 'KeranjangRotanAnyam.jpg',
+            'Charger USB 2A' => 'ChargerUSB2A.webp',
+            'Kabel Data Micro USB 1m' => 'KabelDataMicroUSB1m.jpg',
+        ];
+
         foreach ($samples as $i => $s) {
             $category = Category::where('name', $s['category'])->first();
             if (!$category) continue;
 
             $slug = Str::slug($s['name']);
-            Product::updateOrCreate(
+            // Resolve image path if provided and exists
+            $relativeImage = null;
+            if (isset($imageMap[$s['name']])) {
+                $candidate = 'seed/' . $imageMap[$s['name']];
+                // public_path() helper points to the public directory
+                if (function_exists('public_path')) {
+                    $full = public_path($candidate);
+                    if (file_exists($full)) {
+                        $relativeImage = $candidate;
+                    }
+                } else {
+                    // Fallback without helper (unlikely in Laravel)
+                    $relativeImage = $candidate;
+                }
+            }
+
+            $product = Product::updateOrCreate(
                 ['slug' => $slug],
                 [
                     'sku' => 'SKU'.str_pad((string)($i+1), 4, '0', STR_PAD_LEFT),
@@ -43,8 +74,8 @@ class ProductSeeder extends Seeder
                     'weight' => $s['weight'],
                     'dimensions' => null,
                     'category_id' => $category->id,
-                    'image' => null,
-                    'gallery' => [],
+                    'image' => $relativeImage,
+                    'gallery' => $relativeImage ? [$relativeImage] : [],
                     'is_active' => true,
                     'is_featured' => false,
                     'view_count' => 0,
@@ -55,6 +86,19 @@ class ProductSeeder extends Seeder
                     'meta_description' => 'Belanja '.$s['name'].' dari UMKM lokal.',
                 ]
             );
+
+            // Create or refresh ProductImage records from the image
+            if ($relativeImage && $product) {
+                // Ensure idempotency: remove previous images for this product
+                $product->images()->delete();
+
+                $product->images()->create([
+                    'image_path' => $relativeImage,
+                    'alt_text' => $s['name'],
+                    'is_primary' => true,
+                    'sort_order' => 0,
+                ]);
+            }
         }
     }
 }
